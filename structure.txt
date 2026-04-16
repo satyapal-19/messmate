@@ -1,0 +1,55 @@
+messmate-backend/
+├── config/
+│   ├── db.js               # MongoDB Atlas connection
+│   ├── jwt.js              # JWT secret & expiry config
+│   └── constants.js        # App-wide constants
+├── models/
+│   ├── User.js             # Student schema
+│   ├── Vendor.js           # Vendor/mess schema
+│   ├── Meal.js             # Daily menu items
+│   ├── Booking.js          # Individual meal bookings
+│   ├── SubscriptionPlan.js # Plan templates
+│   ├── Subscription.js     # Active subscriptions
+│   ├── Rating.js           # Meal/mess ratings
+│   ├── SkipRecord.js       # Skip tracking
+│   └── HygieneAudit.js     # Hygiene score logs
+├── controllers/
+│   ├── auth.controller.js
+│   ├── student.controller.js
+│   ├── vendor.controller.js
+│   ├── booking.controller.js
+│   ├── subscription.controller.js
+│   ├── payment.controller.js
+│   ├── rating.controller.js
+│   └── skip.controller.js
+├── routes/
+│   ├── auth.routes.js
+│   ├── student.routes.js
+│   ├── vendor.routes.js
+│   ├── booking.routes.js
+│   └── subscription.routes.js
+├── middleware/
+│   ├── auth.middleware.js   # JWT verify
+│   ├── role.middleware.js   # Student vs Vendor guard
+│   ├── rateLimit.js        # Anti-fraud limiter
+│   └── validate.js         # Joi schema validation
+├── services/
+│   ├── booking.service.js  # Code generation, fraud check
+│   ├── skip.service.js     # Skip credit logic
+│   ├── hygiene.service.js  # Hygiene score aggregation
+│   └── notification.service.js
+├── utils/
+│   ├── codeGenerator.js    # MM-XXXX unique codes
+│   ├── qrGenerator.js      # QR payload builder
+│   └── dateHelpers.js
+├── validations/
+│   ├── auth.validation.js
+│   ├── booking.validation.js
+│   └── subscription.validation.js
+├── constants/
+│   ├── mealTypes.js        # BREAKFAST/LUNCH/DINNER
+│   └── bookingStatus.js    # PENDING/VERIFIED/SKIPPED
+├── seeds/
+│   └── seed.js             # All mock data below
+└── logs/
+    └── (winston logs)

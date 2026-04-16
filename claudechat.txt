@@ -1,0 +1,152 @@
+Here's the complete MessMate system — 6 screens of a production-ready mobile app with full Maharashtra regional context. Let me walk you through what's built and how the backend should be structured.
+
+System Architecture
+Backend Folder Structure
+messmate-backend/
+├── config/
+│   ├── db.js               # MongoDB Atlas connection
+│   ├── jwt.js              # JWT secret & expiry config
+│   └── constants.js        # App-wide constants
+├── models/
+│   ├── User.js             # Student schema
+│   ├── Vendor.js           # Vendor/mess schema
+│   ├── Meal.js             # Daily menu items
+│   ├── Booking.js          # Individual meal bookings
+│   ├── SubscriptionPlan.js # Plan templates
+│   ├── Subscription.js     # Active subscriptions
+│   ├── Rating.js           # Meal/mess ratings
+│   ├── SkipRecord.js       # Skip tracking
+│   └── HygieneAudit.js     # Hygiene score logs
+├── controllers/
+│   ├── auth.controller.js
+│   ├── student.controller.js
+│   ├── vendor.controller.js
+│   ├── booking.controller.js
+│   ├── subscription.controller.js
+│   ├── payment.controller.js
+│   ├── rating.controller.js
+│   └── skip.controller.js
+├── routes/
+│   ├── auth.routes.js
+│   ├── student.routes.js
+│   ├── vendor.routes.js
+│   ├── booking.routes.js
+│   └── subscription.routes.js
+├── middleware/
+│   ├── auth.middleware.js   # JWT verify
+│   ├── role.middleware.js   # Student vs Vendor guard
+│   ├── rateLimit.js        # Anti-fraud limiter
+│   └── validate.js         # Joi schema validation
+├── services/
+│   ├── booking.service.js  # Code generation, fraud check
+│   ├── skip.service.js     # Skip credit logic
+│   ├── hygiene.service.js  # Hygiene score aggregation
+│   └── notification.service.js
+├── utils/
+│   ├── codeGenerator.js    # MM-XXXX unique codes
+│   ├── qrGenerator.js      # QR payload builder
+│   └── dateHelpers.js
+├── validations/
+│   ├── auth.validation.js
+│   ├── booking.validation.js
+│   └── subscription.validation.js
+├── constants/
+│   ├── mealTypes.js        # BREAKFAST/LUNCH/DINNER
+│   └── bookingStatus.js    # PENDING/VERIFIED/SKIPPED
+├── seeds/
+│   └── seed.js             # All mock data below
+└── logs/
+    └── (winston logs)
+
+Key MongoDB Schemas
+User (Student)
+js{
+  name: "Rohit Patil",
+  email: "rohit.patil@walchand.edu.in",
+  phone: "+91 98765 43210",
+  college: "Walchand College of Engineering, Sangli",
+  year: 3, branch: "Computer Engineering",
+  passwordHash: "$2b$...",
+  preference: "both",  // "veg" | "nonveg" | "both"
+  activeSubscriptionId: ObjectId,
+  createdAt: Date
+}
+Vendor (Mess)
+js{
+  messName: "Shree Datta Mess",
+  ownerName: "Mahesh Kamble",
+  phone: "+91 94234 56789",
+  passwordHash: "$2b$...",
+  location: { city: "Kolhapur", area: "Shahupuri", coords: [16.705, 74.243] },
+  type: "both",  // "veg" | "nonveg" | "both"
+  hygieneScore: 8.8,
+  rating: 4.7, ratingCount: 142,
+  fssaiCertified: true,
+  isVerified: true,
+  imageUrl: "https://...",
+  establishedYear: 2015
+}
+Booking
+js{
+  studentId: ObjectId,
+  vendorId: ObjectId,
+  mealId: ObjectId,
+  date: "2026-04-16",
+  mealType: "LUNCH",
+  bookingCode: "MM-7X4Q",
+  status: "PENDING",  // PENDING | VERIFIED | SKIPPED | EXPIRED
+  amount: 80,
+  paymentMode: "CASH",
+  verifiedAt: Date,
+  verifiedBy: ObjectId,  // vendor user
+  subscriptionId: ObjectId,  // null if daily
+  antifraudChecks: {
+    ipHash: String,
+    codeGeneratedAt: Date,
+    expiresAt: Date  // +4 hours
+  }
+}
+Subscription
+js{
+  studentId: ObjectId, vendorId: ObjectId,
+  planId: ObjectId,
+  startDate: Date, endDate: Date,
+  status: "ACTIVE",
+  totalSkipsAllowed: 6, skipsUsed: 4,
+  amountPaid: 3200, paymentMode: "CASH",
+  cashVerifiedBy: ObjectId,
+  mealsIncluded: ["BREAKFAST","LUNCH","DINNER"]
+}
+
+Core API Endpoints
+MethodEndpointDescriptionPOST/auth/register/studentStudent registrationPOST/auth/register/vendorVendor registrationPOST/auth/loginLogin (returns JWT)GET/vendors?city=Kolhapur&type=vegBrowse mess listGET/vendors/:id/menu?date=2026-04-16Daily menuPOST/bookingsCreate booking + generate codePOST/bookings/:id/verifyVendor verifies cash + codePOST/bookings/:id/skipStudent marks skipPOST/subscriptionsSubscribe to a planGET/subscriptions/myStudent's active subscriptionPOST/ratingsSubmit rating + tagsGET/vendors/:id/hygieneHygiene audit detailsGET/students/dashboardStats, history, active bookingGET/vendors/dashboardVendor analytics
+
+Payment + Verification Flow
+Student books meal
+       ↓
+System generates MM-XXXX code (expires 4h, single-use)
+       ↓
+Student shows code/QR at counter
+       ↓
+Vendor enters code in app → validates:
+  • Code exists and unexpired
+  • Student has active booking for this slot/date
+  • Code not already used (anti-fraud)
+       ↓
+Vendor confirms cash received
+       ↓
+Booking status → VERIFIED, timestamp logged
+       ↓
+Student can now rate the meal
+Anti-Fraud Protections
+
+Codes are single-use and expire in 4 hours
+One booking per student per meal slot per day
+Rate limiting: max 3 code regenerations/day
+Subscription skip abuse detection (>6 skips flags account)
+Vendor verification requires biometric/PIN on device
+
+
+Realistic Seed Data (Maharashtra)
+The app includes 4 mess vendors across Kolhapur/Sangli/Pune, 8 students (Satyapal Gaikwad, Rohit Patil, Sneha Jadhav, Vishal Patil, etc.) from Walchand College, realistic Maharashtrian menus (Pithla Bhakri, Zunka, Misal Pav, Chicken Kolhapuri, Varan Bhaat), ratings from 3.9–4.7, hygiene scores audited across 5 categories, and 3 subscription plan tiers at ₹840/₹2,500/₹3,200.
+Want me to generate the actual Node.js/Express code files, MongoDB seed script, or the complete React Native APK-ready component tree next?
