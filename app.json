@@ -5,7 +5,13 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "platforms": ["android"],
+    "splash": {
+      "backgroundColor": "#ea580c",
+      "resizeMode": "contain"
+    },
+    "platforms": [
+      "android"
+    ],
     "scheme": "messmate",
     "android": {
       "package": "com.messmate.mobile",
@@ -13,8 +19,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "replace-with-your-eas-project-id"
+        "projectId": "69e9fe4c-aa30-4f15-b057-338530fc6a8d"
       }
-    }
+    },
+    "owner": "satyapalrgaikwad"
   }
 }
